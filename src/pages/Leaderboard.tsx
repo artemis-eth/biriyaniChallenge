@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Medal, Award, Github, ExternalLink, RefreshCw, Users, GitCommit, AlertCircle } from 'lucide-react';
+import { Medal, Award, Github, ExternalLink, RefreshCw, Users, Crown, Zap, TrendingUp } from 'lucide-react';
 import { useThemeContext } from '../components/ThemeProvider';
 import { BiryaniIcon, BiryaniTrophy, SpiceIcon, SteamEffect } from '../components/BiryaniElements';
 import { useUsers } from '../hooks/useUsers';
@@ -10,11 +10,11 @@ interface RateLimit {
   remaining: number;
   reset: number;
 }
+
 const Leaderboard = () => {
   const { theme } = useThemeContext();
   const { users, isLoading: isRefreshing, refreshUsers, stats } = useUsers();
   const [rateLimit, setRateLimit] = useState<RateLimit | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchRateLimit = async () => {
     try {
@@ -32,28 +32,26 @@ const Leaderboard = () => {
   }, []);
 
   const handleRefresh = async () => {
-    setError(null);
     try {
       await refreshUsers();
       await fetchRateLimit();
     } catch (error) {
       console.error('Error refreshing leaderboard:', error);
-      setError('Failed to refresh leaderboard data. Please try again.');
     }
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <BiryaniTrophy className="h-8 w-8" />;
-    if (rank === 2) return <Medal className="h-6 w-6 text-gray-400" />;
-    if (rank === 3) return <Award className="h-6 w-6 text-amber-600" />;
-    return <span className="text-lg font-bold text-gray-600">{rank}</span>;
+    if (rank === 1) return <Crown className="h-8 w-8 text-yellow-500 animate-pulse" />;
+    if (rank === 2) return <Medal className="h-7 w-7 text-gray-400" />;
+    if (rank === 3) return <Award className="h-7 w-7 text-amber-600" />;
+    return <span className="text-xl font-bold text-gray-600">{rank}</span>;
   };
 
   const getRankBadge = (rank: number) => {
-    if (rank === 1) return `bg-gradient-to-r from-yellow-400 to-yellow-500`;
-    if (rank === 2) return 'bg-gradient-to-r from-gray-300 to-gray-400';
-    if (rank === 3) return 'bg-gradient-to-r from-amber-400 to-amber-500';
-    return `bg-gradient-to-r`;
+    if (rank === 1) return 'from-yellow-400 to-yellow-500';
+    if (rank === 2) return 'from-gray-300 to-gray-400';
+    if (rank === 3) return 'from-amber-400 to-amber-500';
+    return '';
   };
 
   const getRankStyle = (rank: number) => {
@@ -65,238 +63,239 @@ const Leaderboard = () => {
 
   if (users.length === 0 && isRefreshing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-gray-600 font-medium">
-          Loading leaderboard...
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Data</h2>
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              handleRefresh();
-            }}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Try Again
-          </button>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center animate-scale-in">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-600 mx-auto mb-6"></div>
+          <p className="text-xl font-semibold text-gray-600 mb-2">Loading leaderboard...</p>
+          <p className="text-gray-500">Fetching the latest data</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Biriyani Header Banner */}
-      <div 
-        className="relative overflow-hidden rounded-2xl mb-8 p-8 text-white shadow-2xl"
-        style={{ 
-          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` 
-        }}
-      >
-        <SteamEffect className="absolute inset-0" />
-        <div className="relative z-10 text-center">
-          <div className="flex justify-center items-center space-x-4 mb-4">
-            <BiryaniIcon className="h-16 w-16" />
-            <h1 className="text-5xl font-bold">{theme.labels.title}</h1>
-            <BiryaniIcon className="h-16 w-16" />
-          </div>
-          <p className="text-xl opacity-90 mb-4">{theme.labels.subtitle}</p>
-          <div className="bg-white bg-opacity-20 rounded-lg p-4 inline-block">
-            <p className="text-lg font-semibold">{theme.rewardMessage}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Header */}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Chefs</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalUsers}</p>
-            </div>
-            <Users className="h-8 w-8" style={{ color: theme.primaryColor }} />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total {theme.labels.commitLabel}</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalCommits}</p>
-            </div>
-            <SpiceIcon className="h-8 w-8" />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Last Updated</p>
-              <p className="text-sm text-gray-800">
-                {new Date(stats.lastUpdated).toLocaleString()}
-              </p>
-            </div>
-            <RefreshCw 
-              className={`h-8 w-8 cursor-pointer hover:scale-110 transition-all ${
-                isRefreshing ? 'animate-spin' : ''
-              }`}
-              style={{ color: theme.accentColor }}
-              onClick={handleRefresh}
-              title={isRefreshing ? 'Refreshing...' : `Refresh ${theme.labels.commitLabel.toLowerCase()} data`}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Rate Limit Info */}
-      {rateLimit && (
+    <div className="min-h-screen py-8">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Hero Section */}
         <div 
-          className="mb-6 border rounded-lg p-4"
-          style={{ 
-            backgroundColor: `${theme.primaryColor}10`,
-            borderColor: `${theme.primaryColor}30`
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Github className="h-5 w-5" style={{ color: theme.primaryColor }} />
-              <span className="text-sm font-medium" style={{ color: theme.primaryColor }}>
-                GitHub API Status: {rateLimit.remaining}/{rateLimit.limit} requests remaining
-              </span>
-            </div>
-            <span className="text-xs" style={{ color: theme.accentColor }}>
-              Resets at {new Date(rateLimit.reset * 1000).toLocaleTimeString()}
-            </span>
-          </div>
-          {rateLimit.remaining < 100 && (
-            <p className="text-xs mt-2" style={{ color: `${theme.primaryColor}CC` }}>
-              API rate limit is getting low. Data updates may be limited until reset.
-            </p>
-          )}
-        </div>
-      )}
-      {/* Leaderboard */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-        <div 
-          className="px-6 py-4"
+          className="relative overflow-hidden rounded-3xl mb-12 p-12 text-white shadow-2xl animate-slide-up"
           style={{ 
             background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` 
           }}
         >
-          <h2 className="text-xl font-bold text-white flex items-center justify-center">
-            <BiryaniIcon className="h-6 w-6 mr-2" />
-            {theme.labels.leaderboardTitle}
-            <BiryaniIcon className="h-6 w-6 ml-2" />
-          </h2>
+          <SteamEffect className="absolute inset-0" />
+          <div className="relative z-10 text-center">
+            <div className="flex justify-center items-center space-x-6 mb-6">
+              <BiryaniIcon className="h-20 w-20 animate-float" />
+              <h1 className="text-6xl font-bold">{theme.labels.title}</h1>
+              <BiryaniIcon className="h-20 w-20 animate-float" style={{ animationDelay: '1s' }} />
+            </div>
+            <p className="text-2xl opacity-90 mb-6">{theme.labels.subtitle}</p>
+            <div className="glass rounded-2xl p-6 inline-block">
+              <p className="text-xl font-semibold flex items-center justify-center space-x-2">
+                <Zap className="h-6 w-6 text-yellow-300" />
+                <span>{theme.rewardMessage}</span>
+              </p>
+            </div>
+          </div>
         </div>
 
-        {users.length === 0 ? (
-          <div className="text-center py-12">
-            <BiryaniIcon className="h-12 w-12 mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">No chefs registered yet</p>
-            <p className="text-gray-500 mt-2">Be the first to join the {theme.name}!</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {users.map((user) => (
-              <div
-                key={user.id}
-                className={`flex items-center justify-between p-6 hover:bg-gray-50 transition-colors ${
-                  user.rank === 1 ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 
-                  user.rank <= 3 ? 'bg-gradient-to-r from-orange-50 to-red-50' : ''
-                }`}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="card-hover bg-white rounded-2xl shadow-lg p-8 border border-gray-100 animate-slide-in-left stagger-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Total Participants</p>
+                <p className="text-4xl font-bold text-gray-800">{stats.totalUsers}</p>
+              </div>
+              <div 
+                className="p-4 rounded-2xl"
+                style={{ backgroundColor: `${theme.primaryColor}20` }}
               >
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
-                    {getRankIcon(user.rank)}
-                    {user.rank === 1 && (
-                      <div className="absolute -top-2 -right-2 text-xs animate-bounce">👑</div>
-                    )}
-                  </div>
-                  
-                  <img
-                    src={user.avatar_url}
-                    alt={`${user.username}'s avatar`}
-                    className="h-12 w-12 rounded-full border-2 border-white shadow-md"
-                  />
-                  
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-gray-800">{user.username}</h3>
-                      {user.name && user.name !== user.username && (
-                        <span className="text-sm text-gray-500">({user.name})</span>
-                      )}
-                      {user.rank === 1 && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
-                          Biriyani Winner! 🍛
-                        </span>
-                      )}
-                      <a
-                        href={`https://github.com/${user.username}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:scale-110 transition-transform"
-                        style={{ color: theme.primaryColor }}
-                        title={`View ${user.username}'s GitHub profile`}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>
-                        Last updated: {user.lastUpdated ? new Date(user.lastUpdated).toLocaleString() : 'Never'}
-                      </span>
-                      {user.public_repos && (
-                        <span>{user.public_repos} repos</span>
-                      )}
-                      {user.followers && (
-                        <span>{user.followers} followers</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <Users className="h-8 w-8" style={{ color: theme.primaryColor }} />
+              </div>
+            </div>
+          </div>
+          
+          <div className="card-hover bg-white rounded-2xl shadow-lg p-8 border border-gray-100 animate-slide-up stagger-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Total {theme.labels.commitLabel}</p>
+                <p className="text-4xl font-bold text-gray-800">{stats.totalCommits}</p>
+              </div>
+              <div 
+                className="p-4 rounded-2xl"
+                style={{ backgroundColor: `${theme.accentColor}20` }}
+              >
+                <SpiceIcon className="h-8 w-8" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="card-hover bg-white rounded-2xl shadow-lg p-8 border border-gray-100 animate-slide-in-right stagger-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Activity</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {new Date(stats.lastUpdated).toLocaleString()}
+                </p>
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={`p-4 rounded-2xl transition-all duration-300 hover:scale-110 ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+                style={{ backgroundColor: `${theme.accentColor}20`, color: theme.accentColor }}
+                title="Refresh data"
+              >
+                <RefreshCw className="h-8 w-8" />
+              </button>
+            </div>
+          </div>
+        </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-800">{user.commits}</div>
-                    <div className="text-sm text-gray-500">{theme.labels.commitLabel.toLowerCase()}</div>
-                  </div>
-                  
-                  {user.rank <= 3 && (
-                    <div 
-                      className={`${getRankBadge(user.rank)} text-white px-3 py-1 rounded-full text-sm font-medium`}
-                      style={getRankStyle(user.rank)}
-                    >
-                      {theme.labels.rankLabel} #{user.rank}
-                    </div>
-                  )}
+        {/* Rate Limit Info */}
+        {rateLimit && rateLimit.remaining < 1000 && (
+          <div 
+            className="mb-8 border rounded-2xl p-6 animate-slide-up"
+            style={{ 
+              backgroundColor: `${theme.primaryColor}10`,
+              borderColor: `${theme.primaryColor}30`
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Github className="h-6 w-6" style={{ color: theme.primaryColor }} />
+                <div>
+                  <p className="font-semibold" style={{ color: theme.primaryColor }}>
+                    API Status: {rateLimit.remaining}/{rateLimit.limit} requests remaining
+                  </p>
+                  <p className="text-sm" style={{ color: `${theme.primaryColor}CC` }}>
+                    Resets at {new Date(rateLimit.reset * 1000).toLocaleTimeString()}
+                  </p>
                 </div>
               </div>
-            ))}
+              <TrendingUp className="h-6 w-6" style={{ color: theme.accentColor }} />
+            </div>
           </div>
         )}
-      </div>
 
-      <div className="mt-8 text-center">
-        <p className="text-sm text-gray-500">
-          Data is fetched from the GitHub API and cached for performance. {theme.labels.commitLabel} are based on the last 30 days of activity across all public repositories.
-        </p>
-        <p className="text-xs text-gray-400 mt-2">
-          Click the refresh icon to manually update {theme.labels.commitLabel.toLowerCase()} data. Automatic updates occur hourly.
-        </p>
+        {/* Leaderboard */}
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 animate-slide-up stagger-4">
+          <div 
+            className="px-8 py-6"
+            style={{ 
+              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` 
+            }}
+          >
+            <h2 className="text-2xl font-bold text-white flex items-center justify-center space-x-3">
+              <BiryaniIcon className="h-8 w-8" />
+              <span>{theme.labels.leaderboardTitle}</span>
+              <BiryaniIcon className="h-8 w-8" />
+            </h2>
+          </div>
+
+          {users.length === 0 ? (
+            <div className="text-center py-20">
+              <BiryaniIcon className="h-16 w-16 mx-auto mb-6 opacity-50" />
+              <h3 className="text-2xl font-bold text-gray-600 mb-2">No participants yet</h3>
+              <p className="text-gray-500 text-lg">Be the first to join the {theme.name}!</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {users.map((user, index) => (
+                <div
+                  key={user.id}
+                  className={`flex items-center justify-between p-8 hover:bg-gray-50 transition-all duration-300 animate-slide-in-left ${
+                    user.rank === 1 ? 'bg-gradient-to-r from-yellow-50/50 to-orange-50/50' : 
+                    user.rank <= 3 ? 'bg-gradient-to-r from-orange-50/30 to-red-50/30' : ''
+                  }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-center space-x-6">
+                    <div className="flex-shrink-0 relative">
+                      {getRankIcon(user.rank)}
+                      {user.rank === 1 && (
+                        <div className="absolute -top-3 -right-3 animate-bounce">
+                          <Crown className="h-6 w-6 text-yellow-400" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <img
+                        src={user.avatar_url}
+                        alt={`${user.username}'s avatar`}
+                        className="h-16 w-16 rounded-2xl border-4 border-white shadow-lg hover:scale-110 transition-transform duration-300"
+                      />
+                      {user.rank === 1 && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+                          <Crown className="h-3 w-3 text-yellow-800" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-xl font-bold text-gray-800">{user.username}</h3>
+                        {user.name && user.name !== user.username && (
+                          <span className="text-gray-500 font-medium">({user.name})</span>
+                        )}
+                        {user.rank === 1 && (
+                          <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                            <Crown className="h-4 w-4" />
+                            <span>Champion!</span>
+                          </span>
+                        )}
+                        <a
+                          href={`https://github.com/${user.username}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-300 hover:scale-110"
+                          style={{ color: theme.primaryColor }}
+                          title={`View ${user.username}'s GitHub profile`}
+                        >
+                          <ExternalLink className="h-5 w-5" />
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-6 text-sm text-gray-500">
+                        {user.public_repos && (
+                          <span className="flex items-center space-x-1">
+                            <Github className="h-4 w-4" />
+                            <span>{user.public_repos} repos</span>
+                          </span>
+                        )}
+                        {user.followers && (
+                          <span className="flex items-center space-x-1">
+                            <Users className="h-4 w-4" />
+                            <span>{user.followers} followers</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-gray-800 mb-1">{user.commits}</div>
+                      <div className="text-sm text-gray-500 font-medium">{theme.labels.commitLabel.toLowerCase()}</div>
+                    </div>
+                    
+                    {user.rank <= 3 && (
+                      <div 
+                        className={`bg-gradient-to-r ${getRankBadge(user.rank)} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg`}
+                        style={getRankStyle(user.rank)}
+                      >
+                        #{user.rank}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -10,16 +10,17 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen transition-all duration-300" style={{ background: 'var(--background-color, #F8FAFC)' }}>
+        <div 
+          className="min-h-screen transition-all duration-500" 
+          style={{ background: 'var(--background-color, #FAFBFC)' }}
+        >
           <Navigation />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Register />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/admin" element={<Admin />} />
-            </Routes>
-          </main>
+          <Routes>
+            <Route path="/" element={<Register />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
         </div>
       </Router>
     </ThemeProvider>

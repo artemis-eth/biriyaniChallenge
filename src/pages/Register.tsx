@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, CheckCircle, AlertCircle, Info, User, ExternalLink, ArrowRight, ArrowLeft } from 'lucide-react';
+import { UserPlus, CheckCircle, AlertCircle, User, ExternalLink, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { useThemeContext } from '../components/ThemeProvider';
 import { BiryaniIcon, SpiceIcon } from '../components/BiryaniElements';
 import { fetchGitHubUser, isValidGitHubUsername } from '../api/github';
@@ -77,7 +77,7 @@ const Register = () => {
         followers: githubUser.followers
       });
       
-      setMessage('Registration successful! You can now check the leaderboard.');
+      setMessage('🎉 Welcome to the challenge! Check the leaderboard to see your progress.');
       setMessageType('success');
       setUsername('');
       setGithubUser(null);
@@ -107,218 +107,200 @@ const Register = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <BiryaniIcon className="h-8 w-8" />
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-lg">
+        <div className="card-hover bg-white rounded-3xl shadow-xl p-8 border border-gray-100 animate-scale-in">
+          {/* Header */}
+          <div className="text-center mb-8 animate-slide-up">
+            <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
+              <div 
+                className="absolute inset-0 rounded-full animate-pulse"
+                style={{ backgroundColor: `${theme.primaryColor}20` }}
+              ></div>
+              <BiryaniIcon className="h-12 w-12 animate-float" />
+              <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-yellow-400 animate-bounce" />
+            </div>
+            <h1 className="text-4xl font-bold gradient-text mb-3">
+              Join the Challenge
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {theme.labels.subtitle}
+            </p>
           </div>
-          <h1 
-            className="text-3xl font-bold mb-2 bg-gradient-to-r bg-clip-text text-transparent"
-            style={{ 
-              backgroundImage: `linear-gradient(to right, ${theme.primaryColor}, ${theme.accentColor})` 
-            }}
-          >
-            Join the {theme.name}!
-          </h1>
-          <p className="text-gray-600">
-            {theme.labels.subtitle}
-          </p>
-        </div>
 
-        {step === 'input' && (
-          <form onSubmit={handleUsernameSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                GitHub Username
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your GitHub username"
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
-                  disabled={isValidating}
-                />
-                <SpiceIcon className="absolute left-4 top-3.5 h-5 w-5" />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isValidating || !username.trim()}
-              className="w-full text-white py-3 px-6 rounded-lg font-medium focus:ring-4 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-lg"
-              style={{ 
-                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                boxShadow: `0 4px 15px ${theme.primaryColor}40`
-              }}
-            >
-              {isValidating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Validating...</span>
-                </>
-              ) : (
-                <>
-                  <User className="h-5 w-5" />
-                  <span>Validate Account</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
-        )}
-
-        {step === 'confirm' && githubUser && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Your Account</h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Is this the correct GitHub account you want to register?
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <div className="flex items-start space-x-4">
-                <img
-                  src={githubUser.avatar_url}
-                  alt={`${githubUser.login}'s avatar`}
-                  className="h-16 w-16 rounded-full border-2 border-white shadow-md flex-shrink-0"
-                />
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">
-                      {githubUser.name || githubUser.login}
-                    </h3>
-                    <a
-                      href={`https://github.com/${githubUser.login}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:scale-110 transition-transform"
-                      style={{ color: theme.primaryColor }}
-                      title="View GitHub profile"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-3">@{githubUser.login}</p>
-                  
-                  {githubUser.bio && (
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">{githubUser.bio}</p>
-                  )}
-                  
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-white rounded-lg p-2">
-                      <div className="text-lg font-bold text-gray-800">{githubUser.public_repos}</div>
-                      <div className="text-xs text-gray-500">Repos</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-2">
-                      <div className="text-lg font-bold text-gray-800">{githubUser.followers}</div>
-                      <div className="text-xs text-gray-500">Followers</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-2">
-                      <div className="text-lg font-bold text-gray-800">{githubUser.following}</div>
-                      <div className="text-xs text-gray-500">Following</div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 space-y-1 text-xs text-gray-500">
-                    {githubUser.location && (
-                      <p>📍 {githubUser.location}</p>
-                    )}
-                    {githubUser.company && (
-                      <p>🏢 {githubUser.company}</p>
-                    )}
-                    <p>📅 Joined {formatDate(githubUser.created_at)}</p>
+          {step === 'input' && (
+            <form onSubmit={handleUsernameSubmit} className="space-y-6 animate-slide-up stagger-2">
+              <div className="space-y-2">
+                <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
+                  GitHub Username
+                </label>
+                <div className="relative group">
+                  <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="your-github-username"
+                    className="w-full px-6 py-4 pl-14 bg-gray-50 border-2 border-gray-200 rounded-2xl focus-ring transition-all duration-300 text-lg font-medium group-hover:border-gray-300"
+                    disabled={isValidating}
+                  />
+                  <div className="absolute left-5 top-1/2 transform -translate-y-1/2">
+                    <SpiceIcon className="h-6 w-6 transition-transform group-hover:scale-110" />
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex space-x-3">
               <button
-                onClick={handleBackToInput}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                type="submit"
+                disabled={isValidating || !username.trim()}
+                className="btn-primary w-full py-4 px-8 rounded-2xl text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
               >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-              
-              <button
-                onClick={handleConfirmRegistration}
-                disabled={isRegistering}
-                className="flex-1 text-white py-3 px-6 rounded-lg font-medium focus:ring-4 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-lg"
-                style={{ 
-                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                  boxShadow: `0 4px 15px ${theme.primaryColor}40`
-                }}
-              >
-                {isRegistering ? (
+                {isValidating ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Registering...</span>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    <span>Validating...</span>
                   </>
                 ) : (
                   <>
-                    <UserPlus className="h-5 w-5" />
-                    <span>Confirm & Register</span>
+                    <User className="h-6 w-6" />
+                    <span>Validate Account</span>
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
               </button>
-            </div>
-          </div>
-        )}
+            </form>
+          )}
 
-        {message && (
-          <div className={`mt-6 flex items-center space-x-2 p-4 rounded-lg ${
-            messageType === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
-          }`}>
-            {messageType === 'success' ? (
-              <CheckCircle className="h-5 w-5 text-green-600" />
-            ) : (
-              <AlertCircle className="h-5 w-5 text-red-600" />
-            )}
-            <span className={`text-sm font-medium ${
-              messageType === 'success' ? 'text-green-800' : 'text-red-800'
-            }`}>
-              {message}
-            </span>
-          </div>
-        )}
+          {step === 'confirm' && githubUser && (
+            <div className="space-y-6 animate-scale-in">
+              <div className="text-center animate-slide-up">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Confirm Your Account</h2>
+                <p className="text-gray-600">
+                  Ready to join the challenge?
+                </p>
+              </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Make sure your GitHub profile is public so we can track your {theme.labels.commitLabel.toLowerCase()}
-          </p>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200 animate-slide-up stagger-1">
+                <div className="flex items-start space-x-4">
+                  <div className="relative">
+                    <img
+                      src={githubUser.avatar_url}
+                      alt={`${githubUser.login}'s avatar`}
+                      className="h-20 w-20 rounded-2xl border-4 border-white shadow-lg"
+                    />
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-xl font-bold text-gray-800 truncate">
+                        {githubUser.name || githubUser.login}
+                      </h3>
+                      <a
+                        href={`https://github.com/${githubUser.login}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded-lg hover:bg-white/50 transition-colors"
+                        style={{ color: theme.primaryColor }}
+                        title="View GitHub profile"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                    
+                    <p className="text-gray-600 font-medium mb-3">@{githubUser.login}</p>
+                    
+                    {githubUser.bio && (
+                      <p className="text-sm text-gray-700 mb-4 line-clamp-2">{githubUser.bio}</p>
+                    )}
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                        <div className="text-xl font-bold text-gray-800">{githubUser.public_repos}</div>
+                        <div className="text-xs text-gray-500 font-medium">Repos</div>
+                      </div>
+                      <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                        <div className="text-xl font-bold text-gray-800">{githubUser.followers}</div>
+                        <div className="text-xs text-gray-500 font-medium">Followers</div>
+                      </div>
+                      <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                        <div className="text-xl font-bold text-gray-800">{githubUser.following}</div>
+                        <div className="text-xs text-gray-500 font-medium">Following</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 space-y-1 text-xs text-gray-500">
+                      {githubUser.location && (
+                        <p className="flex items-center">
+                          <span className="mr-2">📍</span>
+                          {githubUser.location}
+                        </p>
+                      )}
+                      {githubUser.company && (
+                        <p className="flex items-center">
+                          <span className="mr-2">🏢</span>
+                          {githubUser.company}
+                        </p>
+                      )}
+                      <p className="flex items-center">
+                        <span className="mr-2">📅</span>
+                        Joined {formatDate(githubUser.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <div 
-            className="mt-6 border rounded-lg p-4"
-            style={{ 
-              backgroundColor: `${theme.primaryColor}10`,
-              borderColor: `${theme.primaryColor}30`
-            }}
-          >
-            <div className="flex items-start space-x-3">
-              <Info className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: theme.primaryColor }} />
-              <div className="text-sm" style={{ color: theme.primaryColor }}>
-                <p className="font-medium mb-1">How it works:</p>
-                <ul className="space-y-1" style={{ color: `${theme.primaryColor}CC` }}>
-                  <li>• We validate your GitHub account before registration</li>
-                  <li>• We fetch your public repositories from GitHub</li>
-                  <li>• Count {theme.labels.commitLabel.toLowerCase()} from the last 30 days across all repos</li>
-                  <li>• Only commits authored by you are counted</li>
-                  <li>• Data is updated hourly and cached for performance</li>
-                  <li>• {theme.rewardMessage}</li>
-                </ul>
+              <div className="flex space-x-4 animate-slide-up stagger-2">
+                <button
+                  onClick={handleBackToInput}
+                  className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center space-x-2 hover:scale-105"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span>Back</span>
+                </button>
+                
+                <button
+                  onClick={handleConfirmRegistration}
+                  disabled={isRegistering}
+                  className="btn-primary flex-1 py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isRegistering ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Joining...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-5 w-5" />
+                      <span>Join Challenge</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-          </div>
+          )}
+
+          {message && (
+            <div className={`mt-6 flex items-center space-x-3 p-4 rounded-2xl animate-slide-up ${
+              messageType === 'success' 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              {messageType === 'success' ? (
+                <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+              )}
+              <span className={`font-medium ${
+                messageType === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {message}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
