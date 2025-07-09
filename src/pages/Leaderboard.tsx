@@ -2,24 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Medal, Award, Github, ExternalLink, RefreshCw, Users, GitCommit, AlertCircle } from 'lucide-react';
 import { useThemeContext } from '../components/ThemeProvider';
 import { BiryaniIcon, BiryaniTrophy, SpiceIcon, SteamEffect } from '../components/BiryaniElements';
-
-interface User {
-  id: number;
-  username: string;
-  avatar_url: string;
-  name?: string;
-  public_repos?: number;
-  followers?: number;
-  commits: number;
-  rank: number;
-  lastUpdated: string;
-}
-
-interface Stats {
-  totalUsers: number;
-  totalCommits: number;
-  lastUpdated: string;
-}
+import { useUsers } from '../hooks/useUsers';
+import { checkRateLimit } from '../api/github';
 
 interface RateLimit {
   limit: number;
@@ -28,58 +12,34 @@ interface RateLimit {
 }
 const Leaderboard = () => {
   const { theme } = useThemeContext();
-  const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const { users, isLoading: isRefreshing, refreshUsers, stats } = useUsers();
   const [rateLimit, setRateLimit] = useState<RateLimit | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLeaderboard = async (forceRefresh = false) => {
+  const fetchRateLimit = async () => {
     try {
-      setError(null);
-      const refreshParam = forceRefresh ? '?refresh=true' : '';
-      const [usersResponse, statsResponse] = await Promise.all([
-        fetch(`http://localhost:3001/api/leaderboard${refreshParam}`),
-        fetch('http://localhost:3001/api/stats')
-      ]);
-
-      if (!usersResponse.ok || !statsResponse.ok) {
-        throw new Error('Failed to fetch data from server');
+      const rateLimitData = await checkRateLimit();
+      if (rateLimitData) {
+        setRateLimit(rateLimitData);
       }
-
-      const usersData = await usersResponse.json();
-      const statsData = await statsResponse.json();
-
-      setUsers(usersData);
-      setStats(statsData);
-      
-      // Fetch rate limit info
-      try {
-        const rateLimitResponse = await fetch('http://localhost:3001/api/rate-limit');
-        if (rateLimitResponse.ok) {
-          const rateLimitData = await rateLimitResponse.json();
-          setRateLimit(rateLimitData);
-        }
-      } catch (rateLimitError) {
-        console.warn('Could not fetch rate limit info:', rateLimitError);
-      }
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error);
-      setError('Failed to load leaderboard data. Please try again.');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+    } catch (rateLimitError) {
+      console.warn('Could not fetch rate limit info:', rateLimitError);
     }
   };
 
   useEffect(() => {
-    fetchLeaderboard();
+    fetchRateLimit();
   }, []);
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchLeaderboard(true);
+    setError(null);
+    try {
+      await refreshUsers();
+      await fetchRateLimit();
+    } catch (error) {
+      console.error('Error refreshing leaderboard:', error);
+      setError('Failed to refresh leaderboard data. Please try again.');
+    }
   };
 
   const getRankIcon = (rank: number) => {
@@ -103,18 +63,13 @@ const Leaderboard = () => {
     };
   };
 
-  if (isLoading) {
+  if (users.length === 0 && isRefreshing) {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
         <p className="text-gray-600 font-medium">
-          {isRefreshing ? 'Refreshing commit data...' : 'Loading leaderboard...'}
+          Loading leaderboard...
         </p>
-        {isRefreshing && (
-          <p className="text-sm text-gray-500 mt-2">
-            This may take a moment while we fetch the latest GitHub data
-          </p>
-        )}
       </div>
     );
   }
@@ -129,8 +84,7 @@ const Leaderboard = () => {
           <button
             onClick={() => {
               setError(null);
-              setIsLoading(true);
-              fetchLeaderboard();
+              handleRefresh();
             }}
             className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
           >
@@ -166,48 +120,46 @@ const Leaderboard = () => {
       {/* Header */}
 
       {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Chefs</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalUsers}</p>
-              </div>
-              <Users className="h-8 w-8" style={{ color: theme.primaryColor }} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Chefs</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.totalUsers}</p>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total {theme.labels.commitLabel}</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalCommits}</p>
-              </div>
-              <SpiceIcon className="h-8 w-8" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Last Updated</p>
-                <p className="text-sm text-gray-800">
-                  {new Date(stats.lastUpdated).toLocaleString()}
-                </p>
-              </div>
-              <RefreshCw 
-                className={`h-8 w-8 cursor-pointer hover:scale-110 transition-all ${
-                  isRefreshing ? 'animate-spin' : ''
-                }`}
-                style={{ color: theme.accentColor }}
-                onClick={handleRefresh}
-                title={isRefreshing ? 'Refreshing...' : `Refresh ${theme.labels.commitLabel.toLowerCase()} data`}
-              />
-            </div>
+            <Users className="h-8 w-8" style={{ color: theme.primaryColor }} />
           </div>
         </div>
-      )}
+        
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total {theme.labels.commitLabel}</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.totalCommits}</p>
+            </div>
+            <SpiceIcon className="h-8 w-8" />
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Last Updated</p>
+              <p className="text-sm text-gray-800">
+                {new Date(stats.lastUpdated).toLocaleString()}
+              </p>
+            </div>
+            <RefreshCw 
+              className={`h-8 w-8 cursor-pointer hover:scale-110 transition-all ${
+                isRefreshing ? 'animate-spin' : ''
+              }`}
+              style={{ color: theme.accentColor }}
+              onClick={handleRefresh}
+              title={isRefreshing ? 'Refreshing...' : `Refresh ${theme.labels.commitLabel.toLowerCase()} data`}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Rate Limit Info */}
       {rateLimit && (

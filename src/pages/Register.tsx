@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { UserPlus, CheckCircle, AlertCircle, Info, User, ExternalLink, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useThemeContext } from '../components/ThemeProvider';
 import { BiryaniIcon, SpiceIcon } from '../components/BiryaniElements';
+import { fetchGitHubUser, isValidGitHubUsername } from '../api/github';
+import { userStore } from '../store/userStore';
 
 interface GitHubUser {
   login: string;
@@ -27,8 +29,8 @@ const Register = () => {
   const [step, setStep] = useState<'input' | 'confirm'>('input');
 
   const validateGitHubUser = async (usernameToValidate: string) => {
-    if (!usernameToValidate.trim()) {
-      setMessage('Please enter a GitHub username');
+    if (!usernameToValidate.trim() || !isValidGitHubUsername(usernameToValidate.trim())) {
+      setMessage('Please enter a valid GitHub username');
       setMessageType('error');
       return;
     }
@@ -38,39 +40,14 @@ const Register = () => {
     setMessageType('');
 
     try {
-      const response = await fetch(`https://api.github.com/users/${usernameToValidate.trim()}`);
-      
-      if (response.status === 404) {
-        setMessage(`GitHub user "${usernameToValidate}" not found. Please check the username and try again.`);
-        setMessageType('error');
-        setGithubUser(null);
-        setStep('input');
-        return;
-      }
-
-      if (response.status === 403) {
-        setMessage('GitHub API rate limit exceeded. Please try again later.');
-        setMessageType('error');
-        setGithubUser(null);
-        setStep('input');
-        return;
-      }
-
-      if (!response.ok) {
-        setMessage('Error fetching GitHub user data. Please try again.');
-        setMessageType('error');
-        setGithubUser(null);
-        setStep('input');
-        return;
-      }
-
-      const userData: GitHubUser = await response.json();
+      const userData: GitHubUser = await fetchGitHubUser(usernameToValidate.trim());
       setGithubUser(userData);
       setStep('confirm');
       setMessage('');
       setMessageType('');
     } catch (error) {
-      setMessage('Network error. Please check your connection and try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Network error. Please check your connection and try again.';
+      setMessage(errorMessage);
       setMessageType('error');
       setGithubUser(null);
       setStep('input');
@@ -92,28 +69,22 @@ const Register = () => {
     setMessageType('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: githubUser.login }),
+      userStore.addUser({
+        username: githubUser.login,
+        avatar_url: githubUser.avatar_url,
+        name: githubUser.name || githubUser.login,
+        public_repos: githubUser.public_repos,
+        followers: githubUser.followers
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage('Registration successful! You can now check the leaderboard.');
-        setMessageType('success');
-        setUsername('');
-        setGithubUser(null);
-        setStep('input');
-      } else {
-        setMessage(data.error || 'Registration failed');
-        setMessageType('error');
-      }
+      
+      setMessage('Registration successful! You can now check the leaderboard.');
+      setMessageType('success');
+      setUsername('');
+      setGithubUser(null);
+      setStep('input');
     } catch (error) {
-      setMessage('Network error. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      setMessage(errorMessage);
       setMessageType('error');
     } finally {
       setIsRegistering(false);
